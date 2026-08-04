@@ -1,0 +1,16 @@
+[project]
+name = "stresslens-api"
+version = "0.1.0"
+description = "StressLens Backend API"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic>=2.0",
+    "sqlalchemy[asyncio]",
+    "alembic",
+    "asyncpg",
+    "celery",
+    "redis",
+    "scikit-learn"
+]
