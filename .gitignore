@@ -6,3 +6,6 @@ build/
 .ds_store
 __pycache__/
 *.pyc
+*.md
+!README.md
+!**/README.md
