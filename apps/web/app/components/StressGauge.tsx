@@ -11,17 +11,20 @@ function stressColor(level: number): string {
   return '#ef4444';                    // red
 }
 
-function stressEmoji(level: number): string {
-  if (level === 1) return '😌';
-  if (level === 2) return '🙂';
-  if (level === 3) return '😊';
-  if (level === 4) return '😐';
-  if (level === 5) return '😕';
-  if (level === 6) return '😟';
-  if (level === 7) return '😰';
-  if (level === 8) return '😫';
-  if (level === 9) return '😱';
-  return '🆘';
+function stressIconUrl(level: number): string {
+  const names = [
+    'Beaming%20Face%20with%20Smiling%20Eyes.png',
+    'Smiling%20Face%20with%20Smiling%20Eyes.png',
+    'Slightly%20Smiling%20Face.png',
+    'Neutral%20Face.png',
+    'Confused%20Face.png',
+    'Worried%20Face.png',
+    'Anxious%20Face%20with%20Sweat.png',
+    'Tired%20Face.png',
+    'Loudly%20Crying%20Face.png',
+    'Exploding%20Head.png'
+  ];
+  return `https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/${names[level - 1]}`;
 }
 
 function stressLabel(level: number): string {
@@ -83,11 +86,11 @@ export default function StressGauge({ level, size = 'md', showLabel = true }: St
         </svg>
         {/* center emoji */}
         <div
-          className={`absolute inset-0 flex items-center justify-center ${emojiSize}`}
+          className={`absolute inset-0 flex items-center justify-center`}
           style={{ transform: 'none' }}
           aria-hidden="true"
         >
-          {stressEmoji(level)}
+          <img src={stressIconUrl(level)} alt="Stress emoji" style={{ width: radius, height: radius }} />
         </div>
       </div>
 
@@ -106,4 +109,4 @@ export default function StressGauge({ level, size = 'md', showLabel = true }: St
 }
 
 // exported for use in dashboard bars
-export { stressColor, stressLabel };
+export { stressColor, stressLabel, stressIconUrl };

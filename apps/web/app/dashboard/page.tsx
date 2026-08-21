@@ -1,4 +1,8 @@
 'use client';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell
+} from 'recharts';
+
 import { useEffect, useState, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import ToastContainer, { toast } from '../components/Toast';
@@ -11,6 +15,8 @@ import {
   getDashboardTrend,
   getMLHealth,
   getDashboardInsights,
+  getTopStressDrivers,
+  type TopStressDriver,
   type AggregateItem,
   type StatsResponse,
   type PredictionsResponse,
@@ -26,6 +32,7 @@ interface DashboardData {
   trend: TrendPoint[];
   mlHealth: MLHealthResponse | null;
   insights: InsightsResponse | null;
+  topDrivers: TopStressDriver[];
 }
 
 function StatCard({
@@ -38,7 +45,7 @@ function StatCard({
   accent?: string;
 }) {
   return (
-    <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-5 shadow-sm border border-[var(--color-surface-variant)] flex flex-col gap-3">
+    <div className="clay p-5 flex flex-col gap-3">
       <div className="flex items-start justify-between">
         <p className="text-sm font-medium text-[var(--color-on-surface-variant)]">{label}</p>
         <span className="w-9 h-9 rounded-[var(--radius-md)] flex items-center justify-center text-white"
@@ -171,7 +178,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData>({
     stats: null, aggregate: [], predictions: null,
-    trend: [], mlHealth: null, insights: null,
+    trend: [], mlHealth: null, insights: null, topDrivers: []
   });
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -180,13 +187,14 @@ export default function DashboardPage() {
   const load = useCallback(async (silent = false, days = trendDays) => {
     if (!silent) setLoading(true);
     try {
-      const [statsRes, aggRes, predRes, trendRes, mlRes, insightsRes] = await Promise.allSettled([
+      const [statsRes, aggRes, predRes, trendRes, mlRes, insightsRes, driversRes] = await Promise.allSettled([
         getDashboardStats(),
         getDashboardAggregate(),
         getDashboardPredictions(),
         getDashboardTrend(days),
         getMLHealth(),
         getDashboardInsights(),
+        getTopStressDrivers(),
       ]);
 
       setData({
@@ -196,6 +204,7 @@ export default function DashboardPage() {
         trend:       trendRes.status === 'fulfilled'    ? trendRes.value.data   : [],
         mlHealth:    mlRes.status === 'fulfilled'       ? mlRes.value           : null,
         insights:    insightsRes.status === 'fulfilled' ? insightsRes.value     : null,
+        topDrivers:  driversRes.status === 'fulfilled'  ? driversRes.value.data : [],
       });
       setLastUpdated(new Date());
     } catch {
@@ -358,14 +367,14 @@ export default function DashboardPage() {
           {/* insights panel */}
           {!loading && data.insights && (
             <section aria-labelledby="insights-heading" className="mb-6">
-              <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-6 shadow-sm border border-[var(--color-surface-variant)]">
+              <div className="clay p-6">
                 <h2 id="insights-heading" className="font-semibold text-[var(--color-on-surface)] text-lg mb-1">
                   Live Insights
                 </h2>
                 <p className="text-xs text-[var(--color-on-surface-variant)] mb-5">
                   Real-time signals from anonymized check-in data
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   {/* submission velocity */}
                   <div className="p-4 rounded-[var(--radius-lg)] bg-[var(--color-surface-variant)]">
                     <p className="text-xs font-medium text-[var(--color-on-surface-variant)] mb-1">24h Submissions</p>
@@ -414,7 +423,7 @@ export default function DashboardPage() {
             {/* stress distribution */}
             <section
               aria-labelledby="dist-heading"
-              className="lg:col-span-2 bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-6 shadow-sm border border-[var(--color-surface-variant)]"
+              className="lg:col-span-2 clay p-6"
             >
               <h2 id="dist-heading" className="font-semibold text-[var(--color-on-surface)] text-lg mb-1">
                 Stress Level Distribution
@@ -438,7 +447,7 @@ export default function DashboardPage() {
             {/* ML prediction categories */}
             <section
               aria-labelledby="cat-heading"
-              className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-6 shadow-sm border border-[var(--color-surface-variant)]"
+              className="clay p-6"
             >
               <h2 id="cat-heading" className="font-semibold text-[var(--color-on-surface)] text-lg mb-1">
                 ML Categories
@@ -491,14 +500,14 @@ export default function DashboardPage() {
 
           {/* trend chart */}
           <section aria-labelledby="trend-heading" className="mb-6">
-            <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-6 shadow-sm border border-[var(--color-surface-variant)]">
+            <div className="clay p-6">
               <div className="flex items-center justify-between mb-1">
                 <h2 id="trend-heading" className="font-semibold text-[var(--color-on-surface)] text-lg">
                   Stress Trend
                 </h2>
                 {/* day-range picker */}
                 <div className="flex gap-1" role="group" aria-label="Trend time range">
-                  {[7, 14, 30].map(d => (
+                  {[7, 14, 30, 90].map(d => (
                     <button
                       key={d}
                       onClick={() => { setTrendDays(d); load(true, d); }}
@@ -523,7 +532,7 @@ export default function DashboardPage() {
 
           {/* dept heatmap */}
           <section aria-labelledby="dept-heading" className="mb-6">
-            <div className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-6 shadow-sm border border-[var(--color-surface-variant)]">
+            <div className="clay p-6">
               <h2 id="dept-heading" className="font-semibold text-[var(--color-on-surface)] text-lg mb-1">
                 Department Stress Heatmap
               </h2>
@@ -576,8 +585,129 @@ export default function DashboardPage() {
           </section>
 
         </div>
+        <DepartmentStressChart data={data.aggregate} />
+          <TopStressDriversPanel drivers={data.topDrivers} />
+        <ClusteringPanel />
+        <SemanticSearchPanel />
       </main>
     </>
+  );
+}
+
+function ClusteringPanel() {
+  const [result, setResult] = useState<{topics_found?: number; summary?: string; error?: string} | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleRun = async () => {
+    setLoading(true);
+    try {
+      const res = await import('../lib/api').then(m => m.triggerClustering());
+      setResult(res);
+    } catch (err) {
+      console.error(err);
+      setResult({ error: "Failed to run clustering" });
+    }
+    setLoading(false);
+  };
+
+  return (
+    <section className="clay p-6 mb-6">
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="font-semibold text-[var(--color-on-surface)] text-lg mb-1">
+            Weekly Clustering <span className="text-xs text-[var(--color-primary)] font-mono ml-2">[BERTopic + LLM Summarization]</span>
+          </h2>
+          <p className="text-xs text-[var(--color-on-surface-variant)] mb-5">
+            Identify latent topics and major themes from check-ins via density-based clustering.
+          </p>
+        </div>
+        <button 
+          onClick={handleRun}
+          disabled={loading}
+          className="clay-btn px-4 py-2 text-sm font-medium disabled:opacity-50"
+        >
+          {loading ? 'Running...' : 'Run Analysis'}
+        </button>
+      </div>
+      
+      {result && (
+        <div className="mt-4 p-4 bg-[var(--color-surface-variant)] rounded-[var(--radius-md)] text-sm">
+          {result.error ? (
+            <p className="text-red-500">{result.error}</p>
+          ) : (
+            <div>
+              <p className="font-medium text-[var(--color-primary)] mb-2">Found {result.topics_found} distinct themes</p>
+              <div className="whitespace-pre-wrap opacity-90 leading-relaxed">
+                {result.summary}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SemanticSearchPanel() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<import('../lib/api').SemanticSearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    setLoading(true);
+    try {
+      const res = await import('../lib/api').then(m => m.semanticSearch(query));
+      setResults(res.results);
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <section className="clay p-6 mt-6 mb-6">
+      <h2 className="font-semibold text-[var(--color-on-surface)] text-lg mb-1">
+        Semantic Search <span className="text-xs text-[var(--color-primary)] font-mono ml-2">[Cosine Similarity on Vector Embeddings]</span>
+      </h2>
+      <p className="text-xs text-[var(--color-on-surface-variant)] mb-5">
+        Find historically similar check-ins to identify recurring systemic issues without breaching privacy.
+      </p>
+      
+      <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+        <input 
+          type="text" 
+          placeholder="e.g. overwhelmed by assignments..."
+          className="flex-1 bg-[var(--color-surface-variant)] text-[var(--color-on-surface)] rounded-[var(--radius-md)] px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] placeholder:opacity-50"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+        <button 
+          type="submit" 
+          disabled={loading || !query.trim()}
+          className="clay-btn px-4 py-2 text-sm font-medium disabled:opacity-50"
+        >
+          {loading ? 'Searching...' : 'Search'}
+        </button>
+      </form>
+      
+      {results.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {results.map(r => (
+            <div key={r.id} className="p-3 bg-[var(--color-surface-variant)] rounded-[var(--radius-md)] flex items-start gap-3">
+              <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-[var(--color-surface)] font-bold text-xs">
+                {r.stress_level}
+              </div>
+              <div>
+                <p className="text-sm italic opacity-80">&quot;{r.text}&quot;</p>
+                <p className="text-[10px] text-[var(--color-primary)] mt-1 font-mono">Sim: {(r.score * 100).toFixed(1)}%</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -590,5 +720,63 @@ function EmptyState({ message }: { message: string }) {
       </svg>
       <p className="text-sm text-[var(--color-on-surface-variant)]">{message}</p>
     </div>
+  );
+}
+function TopStressDriversPanel({ drivers }: { drivers: TopStressDriver[] }) {
+  if (!drivers || drivers.length === 0) return null;
+  return (
+    <section className="clay p-6 mt-6">
+      <h2 className="font-semibold text-[var(--color-on-surface)] text-lg mb-1">
+        Key Stress Drivers <span className="text-xs text-[var(--color-primary)] font-mono ml-2">[TF-IDF Predictive Features]</span>
+      </h2>
+      <p className="text-xs text-[var(--color-on-surface-variant)] mb-5">
+        Keywords mathematically strongly associated with high stress vs low stress.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {drivers.map(d => (
+          <div key={d.keyword} className="px-3 py-1.5 rounded-[var(--radius-md)] bg-[var(--color-error-container)] text-[var(--color-on-error-container)] flex items-center gap-2 border border-red-500/20">
+            <span className="font-semibold text-sm">{d.keyword}</span>
+            <span className="text-[10px] font-mono opacity-80" title="TF-IDF Diff">+{d.importance.toFixed(2)}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
+function DepartmentStressChart({ data }: { data: AggregateItem[] }) {
+  if (!data || data.length === 0) return <EmptyState message="No department data available" />;
+  
+  // Sort by stress descending
+  const sorted = [...data].sort((a, b) => (b.avg_stress || 0) - (a.avg_stress || 0)).slice(0, 8);
+
+  return (
+    <section className="clay p-6 mt-6">
+      <h2 className="font-semibold text-[var(--color-on-surface)] text-lg mb-1">
+        Department Stress Analysis
+      </h2>
+      <p className="text-xs text-[var(--color-on-surface-variant)] mb-5">
+        Average stress levels across top departments (k-anonymity enforced).
+      </p>
+      <div className="h-[300px] w-full mt-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={sorted} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" vertical={false} />
+            <XAxis dataKey="dept_hash" stroke="var(--color-on-surface-variant)" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke="var(--color-on-surface-variant)" fontSize={12} tickLine={false} axisLine={false} domain={[0, 10]} />
+            <RechartsTooltip 
+              cursor={{ fill: 'var(--color-surface-variant)', opacity: 0.4 }}
+              contentStyle={{ backgroundColor: 'var(--color-surface)', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+            />
+            <Bar dataKey="avg_stress" name="Avg Stress" radius={[4, 4, 0, 0]}>
+              {sorted.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={(entry.avg_stress || 0) > 7 ? 'var(--color-error)' : (entry.avg_stress || 0) > 4 ? '#f59e0b' : '#22c55e'} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
   );
 }

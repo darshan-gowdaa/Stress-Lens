@@ -8,7 +8,7 @@ try:
     _analyzer = AnalyzerEngine()
     _anonymizer = AnonymizerEngine()
     _PRESIDIO_AVAILABLE = True
-except Exception:
+except (Exception, SystemExit):
     _PRESIDIO_AVAILABLE = False
 
 # PII entity types to detect

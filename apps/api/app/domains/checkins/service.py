@@ -9,7 +9,7 @@ from app.ml.tasks import predict_stress_category
 async def create_checkin(db: AsyncSession, checkin: CheckinCreate) -> RawCheckin:
     redacted = redact_text(checkin.text)
     c_hash = salt_hash(checkin.course) if checkin.course else None
-    d_hash = salt_hash(checkin.dept) if checkin.dept else None
+    d_hash = checkin.dept if checkin.dept else None
     tags_json = json.dumps(checkin.tags) if checkin.tags else None
 
     db_checkin = RawCheckin(

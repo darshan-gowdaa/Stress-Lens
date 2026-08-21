@@ -1,7 +1,6 @@
 import json
 from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey
 from sqlalchemy.sql import func
-from pgvector.sqlalchemy import Vector
 from app.core.database import Base
 
 
@@ -15,7 +14,7 @@ class RawCheckin(Base):
     dept_hash = Column(String, nullable=True)
     tags = Column(Text, nullable=True)  # JSON-encoded list e.g. '["anxious","tired"]'
     sleep_hours = Column(Integer, nullable=True)
-    embedding = Column(Vector(384), nullable=True)
+    embedding = Column(Text, nullable=True)
     # valence: sentiment score in [-1, 1], negative = more distressed
     valence = Column(Float, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

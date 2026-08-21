@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev:api": "cd apps/api && python -m uvicorn app.main:app --reload --port 8000",
+    "dev:api": "cd apps/api && uv run uvicorn app.main:app --port 8000",
     "dev:web": "cd apps/web && npm run dev",
     "dev:docker": "docker compose up -d",
     "kill": "docker compose down && Stop-Process -Name node -ErrorAction SilentlyContinue && Stop-Process -Name python -ErrorAction SilentlyContinue",
-    "dev": "npm run dev:docker && concurrently \"npm run dev:api\" \"npm run dev:web\""
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

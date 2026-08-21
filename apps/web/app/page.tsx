@@ -2,8 +2,9 @@
 import { useState, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import ToastContainer, { toast } from './components/Toast';
-import StressGauge from './components/StressGauge';
+import StressGauge, { stressIconUrl } from './components/StressGauge';
 import { submitCheckin, getAINudge } from './lib/api';
+import { motion } from 'framer-motion';
 
 const COURSES = [
   'Computer Science', 'Mathematics', 'Physics', 'Chemistry',
@@ -109,7 +110,7 @@ export default function CheckinPage() {
       <ToastContainer />
 
       <main className="flex-1 px-4 py-10 sm:py-16">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-3xl mx-auto">
           {/* header */}
           <div className="text-center mb-10 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
             <h1 className="text-3xl sm:text-4xl font-bold text-[var(--color-on-surface)] mb-2">
@@ -127,7 +128,7 @@ export default function CheckinPage() {
           >
             {/* stress slider card */}
             <section
-              className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-6 shadow-sm border border-[var(--color-surface-variant)] animate-fade-in-up"
+              className="clay p-6 animate-fade-in-up"
               style={{ animationDelay: '60ms' }}
               aria-labelledby="stress-label"
             >
@@ -145,15 +146,26 @@ export default function CheckinPage() {
 
               {/* emoji tick markers */}
               <div className="flex justify-between text-base mb-1 px-1 select-none" aria-hidden="true">
-                {['😌','🙂','😊','😐','😕','😟','😰','😫','😱','🆘'].map((emoji, i) => (
-                  <span
-                    key={i}
-                    className="transition-all duration-150"
-                    style={{ opacity: stressLevel === i + 1 ? 1 : 0.35, transform: stressLevel === i + 1 ? 'scale(1.5)' : 'scale(1)' }}
-                  >
-                    {emoji}
-                  </span>
-                ))}
+                {Array.from({ length: 10 }).map((_, i) => {
+                  const level = i + 1;
+                  const active = stressLevel === level;
+                  return (
+                    <motion.div
+                      key={level}
+                      onClick={() => setStressLevel(level)}
+                      className="cursor-pointer"
+                      animate={{
+                        scale: active ? 1.5 : 1,
+                        opacity: active ? 1 : 0.35,
+                      }}
+                      whileHover={{ scale: 1.3 }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    >
+                      <img src={stressIconUrl(level)} alt={`Level ${level}`} className="w-6 h-6 object-contain pointer-events-none" />
+                    </motion.div>
+                  );
+                })}
               </div>
 
               <input
@@ -179,7 +191,7 @@ export default function CheckinPage() {
 
             {/* textarea card */}
             <section
-              className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-6 shadow-sm border border-[var(--color-surface-variant)] animate-fade-in-up"
+              className="clay p-6 animate-fade-in-up"
               style={{ animationDelay: '120ms' }}
               aria-labelledby="text-label"
             >
@@ -224,7 +236,7 @@ export default function CheckinPage() {
 
             {/* mood tags */}
             <section
-              className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-6 shadow-sm border border-[var(--color-surface-variant)] animate-fade-in-up"
+              className="clay p-6 animate-fade-in-up"
               style={{ animationDelay: '180ms' }}
               aria-labelledby="tags-label"
             >
@@ -264,8 +276,8 @@ export default function CheckinPage() {
               {selectedTags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5" aria-live="polite">
                   {selectedTags.filter(t => TAG_RESOURCES[t]).map(t => (
-                    <span key={t} className="text-xs px-2 py-1 rounded-[var(--radius-sm)] bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)]">
-                      💡 {TAG_RESOURCES[t]}
+                    <span key={t} className="text-xs px-2 py-1 rounded-[var(--radius-sm)] bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] flex items-center gap-1">
+                      <i className="ri-lightbulb-flash-line"></i> {TAG_RESOURCES[t]}
                     </span>
                   ))}
                 </div>
@@ -274,7 +286,7 @@ export default function CheckinPage() {
 
             {/* optional fields */}
             <section
-              className="bg-[var(--color-surface)] rounded-[var(--radius-xl)] p-6 shadow-sm border border-[var(--color-surface-variant)] animate-fade-in-up"
+              className="clay p-6 animate-fade-in-up"
               style={{ animationDelay: '240ms' }}
               aria-labelledby="optional-label"
             >
@@ -359,12 +371,12 @@ export default function CheckinPage() {
                 'Submit check-in anonymously'
               }
               className={`
-                relative w-full py-4 rounded-[var(--radius-full)] font-semibold text-base
+                md:col-span-2 relative w-full py-4 rounded-[var(--radius-full)] font-semibold text-base
                 transition-all duration-200 animate-fade-in-up
                 flex items-center justify-center gap-2
                 ${submitState === 'success'
                   ? 'bg-emerald-600 text-white cursor-default'
-                  : 'bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:opacity-90 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed'
+                  : 'clay-btn disabled:opacity-70 disabled:cursor-not-allowed'
                 }
               `}
               style={{ animationDelay: '360ms' }}
@@ -388,12 +400,12 @@ export default function CheckinPage() {
           {/* AI nudge card — shown after successful submission */}
           {submitState === 'success' && (
             <div
-              className="mt-4 p-5 rounded-[var(--radius-xl)] border border-[var(--color-primary-container)] bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] animate-fade-in-up"
+              className="md:col-span-2 mt-4 p-5 rounded-[var(--radius-xl)] border border-[var(--color-primary-container)] bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] animate-fade-in-up"
               aria-live="polite"
               aria-label="Personalised wellbeing tip"
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">✨</span>
+                <i className="ri-sparkling-2-line text-lg"></i>
                 <span className="text-sm font-semibold">A thought for you</span>
                 {nudgeLoading && (
                   <svg className="animate-spin ml-auto" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -407,7 +419,7 @@ export default function CheckinPage() {
               {aiNudge && <p className="text-sm leading-relaxed">{aiNudge}</p>}
               {!nudgeLoading && !aiNudge && (
                 <p className="text-sm leading-relaxed opacity-70">
-                  Remember: reaching out for support is always a sign of strength. 💙
+                  Remember: reaching out for support is always a sign of strength. <i className="ri-heart-pulse-line align-middle"></i>
                 </p>
               )}
             </div>

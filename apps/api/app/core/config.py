@@ -5,9 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/stresslens"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./stresslens.db"
     # sync URL for celery tasks (psycopg2 driver)
-    SYNC_DATABASE_URL: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/stresslens"
+    SYNC_DATABASE_URL: str = "sqlite:///./stresslens.db"
     REDIS_URL: str = "redis://localhost:6379/0"
     K_ANONYMITY_THRESHOLD: int = 5
     ANONYMITY_SALT: str = "stresslens_default_salt"

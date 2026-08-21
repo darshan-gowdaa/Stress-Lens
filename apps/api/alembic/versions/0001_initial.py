@@ -6,6 +6,7 @@ Create Date: 2026-08-04
 """
 from alembic import op
 import sqlalchemy as sa
+import pgvector.sqlalchemy
 
 revision = "0001"
 down_revision = None
@@ -24,7 +25,7 @@ def upgrade() -> None:
         sa.Column("course_hash", sa.String, nullable=True),
         sa.Column("dept_hash", sa.String, nullable=True),
         sa.Column("tags", sa.Text, nullable=True),
-        sa.Column("embedding", sa.Text, nullable=True),  # stored as vector string
+        sa.Column("embedding", pgvector.sqlalchemy.Vector(384), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
 

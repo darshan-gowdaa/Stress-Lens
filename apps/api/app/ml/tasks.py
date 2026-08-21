@@ -69,10 +69,11 @@ def predict_stress_category(self, checkin_id: int, text: str):
             {"id": checkin_id, "cat": category, "conf": confidence},
         )
         # store embedding + valence on the check-in row
-        emb_str = "[" + ",".join(str(v) for v in embedding) + "]"
+        import json
+        emb_str = json.dumps(embedding)
         db.execute(
             sa_text(
-                "UPDATE raw_checkins SET embedding=:emb::vector, valence=:val WHERE id=:id"
+                "UPDATE raw_checkins SET embedding=:emb, valence=:val WHERE id=:id"
             ),
             {"emb": emb_str, "val": valence, "id": checkin_id},
         )
@@ -138,22 +139,24 @@ def find_similar_checkins(checkin_id: int, top_k: int = 5):
         if not row or row[0] is None:
             return {"error": "No embedding found"}
 
-        # cosine similarity via pgvector <=> operator (smaller = more similar)
-        similar = db.execute(
-            sa_text(
-                "SELECT id, stress_level, created_at, "
-                "1 - (embedding <=> :emb::vector) AS similarity "
-                "FROM raw_checkins "
-                "WHERE id != :id AND embedding IS NOT NULL "
-                "ORDER BY embedding <=> :emb::vector "
-                "LIMIT :k"
-            ),
-            {"emb": str(row[0]), "id": checkin_id, "k": top_k},
+        # Fetch all other embeddings
+        all_others = db.execute(
+            sa_text("SELECT id, stress_level, created_at, embedding FROM raw_checkins WHERE id != :id AND embedding IS NOT NULL"),
+            {"id": checkin_id}
         ).fetchall()
-
-        return [
-            {"id": r.id, "stress_level": r.stress_level, "similarity": round(r.similarity, 4)}
-            for r in similar
-        ]
+        
+        import json
+        target_emb = np.array(json.loads(row[0]))
+        results = []
+        for r in all_others:
+            try:
+                emb = np.array(json.loads(r.embedding))
+                sim = float(np.dot(target_emb, emb) / (np.linalg.norm(target_emb) * np.linalg.norm(emb)))
+                results.append({"id": r.id, "stress_level": r.stress_level, "similarity": round(sim, 4)})
+            except:
+                pass
+        
+        results.sort(key=lambda x: x["similarity"], reverse=True)
+        return results[:top_k]
     finally:
         db.close()

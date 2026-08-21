@@ -1,5 +1,6 @@
-// centralized API client - all fetch calls live here, base URL from env
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// centralized API client - all fetch calls live here
+// Use absolute URL on the server, relative /api path on the client to hit next.js proxy
+const API_BASE = typeof window === 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000') : '/api';
 
 export interface CheckinPayload {
   stress_level: number;
@@ -69,6 +70,7 @@ export interface InsightsResponse {
   top_tags: InsightsTag[];
   submission_trend: { last_24h: number; prev_24h: number };
   high_distress_signals: number;
+  concept_drift_score: number;
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
@@ -120,4 +122,38 @@ export function getMLHealth(): Promise<MLHealthResponse> {
 
 export function getDashboardInsights(): Promise<InsightsResponse> {
   return apiFetch('/dashboard/insights');
+}
+
+export function fetchValenceCorrelation(): Promise<{ data: { stress_level: number; avg_valence: number }[] }> {
+  return apiFetch('/dashboard/valence-correlation');
+}
+
+export function fetchConfidenceHistogram(): Promise<{ data: { bin: string; count: number }[] }> {
+  return apiFetch('/dashboard/confidence-histogram');
+}
+
+export interface SemanticSearchResult {
+  id: number;
+  text: string;
+  stress_level: number;
+  score: number;
+}
+
+export function semanticSearch(text: string, top_k: number = 5): Promise<{ results: SemanticSearchResult[] }> {
+  return apiFetch('/dashboard/semantic-search', {
+    method: 'POST',
+    body: JSON.stringify({ text, top_k })
+  });
+}
+
+export function triggerClustering(): Promise<{ topics_found?: number; summary?: string; error?: string }> {
+  return apiFetch('/dashboard/trigger-clustering', { method: 'POST' });
+}
+export interface TopStressDriver {
+  keyword: string;
+  importance: number;
+}
+
+export function getTopStressDrivers(): Promise<{ data: TopStressDriver[] }> {
+  return apiFetch('/dashboard/top-stress-drivers');
 }

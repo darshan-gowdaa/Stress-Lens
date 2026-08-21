@@ -65,6 +65,23 @@ class SentimentHead(nn.Module):
         return self.net(x).squeeze(-1)
 
 
+from sklearn.base import BaseEstimator, TransformerMixin
+
+class DistilBertEncoder(BaseEstimator, TransformerMixin):
+    def __init__(self, model_name="all-MiniLM-L6-v2"):
+        self.model_name = model_name
+        self.encoder = None
+        
+    def fit(self, X, y=None):
+        return self
+        
+    def transform(self, X):
+        from sentence_transformers import SentenceTransformer
+        if self.encoder is None:
+            self.encoder = SentenceTransformer(self.model_name)
+        return self.encoder.encode(X)
+
+
 def get_baseline_model() -> Pipeline:
     """TF-IDF + Logistic Regression fallback when MLflow model unavailable.
 

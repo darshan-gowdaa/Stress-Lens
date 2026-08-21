@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 interface NavbarProps {
-  currentPath?: 'checkin' | 'dashboard';
+  currentPath?: 'checkin' | 'dashboard' | 'notebook';
 }
 
 export default function Navbar({ currentPath }: NavbarProps) {
@@ -38,6 +38,16 @@ export default function Navbar({ currentPath }: NavbarProps) {
             }`}
           >
             Dashboard
+          </Link>
+          <Link
+            href="/notebook"
+            className={`px-4 py-1.5 rounded-[var(--radius-full)] text-sm font-medium transition-colors ${
+              currentPath === 'notebook'
+                ? 'bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)]'
+                : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]'
+            }`}
+          >
+            Notebook
           </Link>
         </nav>
       </div>
