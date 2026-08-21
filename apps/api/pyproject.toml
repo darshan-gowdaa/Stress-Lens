@@ -19,4 +19,5 @@ dependencies = [
     "bertopic>=0.17.4",
     "numpy>=2.5.2",
     "pandas>=2.3.3",
+    "aiosqlite>=0.22.1",
 ]
