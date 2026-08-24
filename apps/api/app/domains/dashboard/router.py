@@ -82,46 +82,64 @@ async def get_stats(db: AsyncSession = Depends(get_db)):
 
 @router.get("/trend")
 async def get_trend(db: AsyncSession = Depends(get_db), days: int = 7):
+    """Avg stress per day for the last N days (default 7, max 365)."""
+    days = max(1, min(days, 365))
 
-    """Avg stress per day for the last N days (default 7, max 30)."""
-    days = min(days, 30)
-    
     import datetime
+    from collections import defaultdict
+
     now = datetime.datetime.now(datetime.timezone.utc)
     start_date = now - datetime.timedelta(days=days)
-    
+
     result = await db.execute(
         select(RawCheckin.created_at, RawCheckin.stress_level, RawCheckin.valence)
         .where(RawCheckin.created_at >= start_date)
     )
-    
-    from collections import defaultdict
+
     day_stresses = defaultdict(list)
     day_valences = defaultdict(list)
-    
+
     for row in result.all():
-        if not row.created_at: continue
+        if not row.created_at:
+            continue
         day_str = row.created_at.strftime("%Y-%m-%d")
         day_stresses[day_str].append(row.stress_level)
         if row.valence is not None:
             day_valences[day_str].append(row.valence)
-            
+
+    # Return continuous date series over the requested window
     trend_data = []
-    for day in sorted(day_stresses.keys()):
-        stresses = day_stresses[day]
-        valences = day_valences[day]
-        
-        avg_stress = sum(stresses) / len(stresses)
-        avg_valence = sum(valences) / len(valences) if valences else None
-        
+    for i in range(days - 1, -1, -1):
+        target_date = (now - datetime.timedelta(days=i)).strftime("%Y-%m-%d")
+        stresses = day_stresses.get(target_date, [])
+        valences = day_valences.get(target_date, [])
+
+        if stresses:
+            avg_stress = round(sum(stresses) / len(stresses), 2)
+            avg_valence = round(sum(valences) / len(valences), 3) if valences else None
+            cnt = len(stresses)
+        else:
+            avg_stress = 0.0
+            avg_valence = None
+            cnt = 0
+
         trend_data.append({
-            "day": day,
-            "avg_stress": round(avg_stress, 2),
-            "avg_valence": round(avg_valence, 3) if avg_valence is not None else None,
-            "count": len(stresses)
+            "day": target_date,
+            "avg_stress": avg_stress,
+            "avg_valence": avg_valence,
+            "count": cnt,
         })
-        
+
     return {"data": trend_data}
+
+
+@router.post("/seed-production-data")
+@router.post("/sync-records")
+async def seed_production_data(db: AsyncSession = Depends(get_db)):
+    """Populate 250+ diverse check-in records with embeddings and predictions."""
+    from app.domains.dashboard.seeder import populate_rich_records
+    return await populate_rich_records(db)
+
 
 
 
