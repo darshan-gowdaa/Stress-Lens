@@ -210,8 +210,8 @@ export default function CheckinView({ currentPath = 'checkin' }: CheckinViewProp
       <Navbar currentPath={currentPath} />
       <ToastContainer />
 
-      <main className="flex-1 px-4 py-8 sm:py-12 bg-[var(--color-background)]">
-        <div className="max-w-3xl mx-auto space-y-6">
+      <main className="flex-1 px-4 py-8 sm:py-10 bg-[var(--color-background)]">
+        <div className="max-w-6xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-2 animate-fade-in-up">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] text-xs font-semibold">
