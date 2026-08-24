@@ -1,62 +1,83 @@
+import os
+import sys
+import asyncio
+import numpy as np
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from sqlalchemy.future import select
+from app.core.database import SessionLocal
+from app.domains.checkins.repository import RawCheckin
 import mlflow
-import torch
-from sentence_transformers import SentenceTransformer
-from app.ml.models import get_baseline_model, StressMLP
-from sklearn.metrics import f1_score
-from transformers import pipeline
+import mlflow.sklearn
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
+from app.ml.models import DistilBertEncoder
+from app.core.config import settings
 
-class TransformerPredictor:
-    def __init__(self):
-        self.pipe = pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2-english")
-    
-    def predict(self, texts):
-        return [1 if res['label'] == 'NEGATIVE' else 0 for res in self.pipe(texts)]
+mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
 
-def train_baseline(texts, labels):
-    model = get_baseline_model()
-    model.fit(texts, labels)
-    preds = model.predict(texts)
-    f1 = f1_score(labels, preds, average='weighted')
-    
-    mlflow.set_experiment("stress_classification")
-    with mlflow.start_run(run_name="baseline_lr"):
-        mlflow.log_metric("f1_score", f1)
-        mlflow.sklearn.log_model(model, "model", registered_model_name="stress_classifier")
-    return model
+async def fetch_data():
+    async with SessionLocal() as session:
+        result = await session.execute(select(RawCheckin).where(RawCheckin.stress_level.isnot(None)))
+        return result.scalars().all()
 
-def train_mlp(texts, labels):
-    # Dummy embedder for MLP input
-    embedder = SentenceTransformer('all-MiniLM-L6-v2')
-    embeddings = embedder.encode(texts)
+def train():
+    print("Fetching data from SQLite...")
+    data = asyncio.run(fetch_data())
     
-    # Train PyTorch MLP
-    model = StressMLP(input_dim=384)
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    
-    X = torch.tensor(embeddings, dtype=torch.float32)
-    y = torch.tensor(labels, dtype=torch.long)
-    
-    for epoch in range(50):
-        optimizer.zero_grad()
-        out = model(X)
-        loss = criterion(out, y)
-        loss.backward()
-        optimizer.step()
+    texts = []
+    labels = []
+    for row in data:
+        texts.append(row.text_redacted)
+        if row.stress_level <= 3:
+            labels.append(0)
+        elif row.stress_level <= 7:
+            labels.append(1)
+        else:
+            labels.append(2)
+            
+    if not texts:
+        print("No data found!")
+        return
         
-    with torch.no_grad():
-        preds = torch.argmax(model(X), dim=1).numpy()
-    f1 = f1_score(labels, preds, average='weighted')
+    print(f"Loaded {len(texts)} checkins.")
     
-    with mlflow.start_run(run_name="mlp"):
-        mlflow.log_metric("f1_score", f1)
-        mlflow.pytorch.log_model(model, "model", registered_model_name="stress_classifier_mlp")
-    return model
+    # Build a native sklearn pipeline
+    pipeline = Pipeline([
+        ('encoder', DistilBertEncoder()),
+        ('clf', RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=42))
+    ])
+    
+    print("Training Pipeline...")
+    pipeline.fit(texts, labels)
+    
+    print("Logging to MLFlow...")
+    mlflow.set_experiment("Stress_Classifier")
+    with mlflow.start_run() as run:
+        mlflow.log_param("n_estimators", 100)
+        mlflow.log_param("encoder", "all-MiniLM-L6-v2")
+        
+        # log as standard sklearn model
+        mlflow.sklearn.log_model(
+            sk_model=pipeline,
+            artifact_path="model", serialization_format="cloudpickle",
+            registered_model_name="stress_classifier"
+        )
+        
+        client = mlflow.tracking.MlflowClient()
+        latest_versions = client.get_latest_versions("stress_classifier", stages=["None"])
+        if latest_versions:
+            latest_version = latest_versions[-1].version
+            client.transition_model_version_stage(
+                name="stress_classifier",
+                version=latest_version,
+                stage="Production",
+                archive_existing_versions=True
+            )
+            print(f"Promoted stress_classifier version {latest_version} to Production.")
+
+    print("Done!")
 
 if __name__ == "__main__":
-    texts = ["I am very stressed", "This course is easy", "Finals are killing me", "Feeling good"]
-    labels = [2, 0, 2, 0] # 0: low, 1: med, 2: high
-    
-    # Train both
-    train_baseline(texts, labels)
-    train_mlp(texts, labels)
+    train()

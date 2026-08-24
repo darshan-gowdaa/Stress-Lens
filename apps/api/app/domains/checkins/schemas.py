@@ -21,13 +21,3 @@ class CheckinResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-class PredictionResponse(BaseModel):
-    checkin_id: int
-    category: str
-
-
-class DashboardAggregateResponse(BaseModel):
-    dept_hash: Optional[str]
-    avg_stress: Optional[float]
-    count: int

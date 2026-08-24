@@ -74,18 +74,6 @@ def generate_checkin_nudge(stress_level: int, tags: list[str], category: str) ->
     return _call_with_fallback(prompt, max_tokens=120) or ""
 
 
-def generate_dept_insight(dept_avg_stress: float, dept_count: int, top_tags: list[str]) -> str:
-    """Generate a one-sentence actionable insight for a department's stress data."""
-    tag_str = ", ".join(top_tags[:5]) if top_tags else "no tags"
-    prompt = (
-        f"Department data: avg stress {dept_avg_stress:.1f}/10, "
-        f"{dept_count} submissions, common mood tags: {tag_str}. "
-        "Write exactly one sentence recommending a specific staff action. "
-        "Be concrete. No hedging."
-    )
-    return _call_with_fallback(prompt, max_tokens=80) or ""
-
-
 def _call_with_fallback(prompt: str, max_tokens: int = 300) -> str:
     """Try Claude first, fall back to Gemini, return empty string if both fail."""
     if settings.CLAUDE_API_KEY:

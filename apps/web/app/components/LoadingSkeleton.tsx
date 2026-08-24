@@ -166,16 +166,4 @@ export function SemanticSearchSkeleton() {
   );
 }
 
-// Backward compatibility exports
-export function StatCardSkeleton() {
-  return <div className="clay p-5 h-[130px] bg-[var(--color-surface)] rounded-[var(--radius-xl)] animate-pulse-slow" />;
-}
-
-export function ChartSkeleton() {
-  return <div className="clay p-6 h-[260px] bg-[var(--color-surface)] rounded-[var(--radius-xl)] animate-pulse-slow" />;
-}
-
-export function DeptCardSkeleton() {
-  return <div className="p-4 h-28 bg-[var(--color-surface-variant)]/60 rounded-[var(--radius-lg)] animate-pulse-slow" />;
-}
 

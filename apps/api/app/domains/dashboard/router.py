@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, text
+from sqlalchemy import select, func, text, case
 from app.core.database import get_db
+
 from app.domains.checkins.repository import RawCheckin, Prediction
 from app.core.config import settings
 from app.ml.registry import get_model_meta
@@ -40,24 +41,16 @@ async def get_aggregate(db: AsyncSession = Depends(get_db)):
 @router.get("/stats")
 async def get_stats(db: AsyncSession = Depends(get_db)):
     """Overall stats: total, avg stress, distribution, high-stress count, active depts."""
-    total_res = await db.execute(select(func.count(RawCheckin.id)))
-    total = total_res.scalar() or 0
-
-    avg_res = await db.execute(select(func.avg(RawCheckin.stress_level)))
-    avg_stress = avg_res.scalar()
-
-    # checkins with stress > 7 considered high-stress
-    high_res = await db.execute(
-        select(func.count(RawCheckin.id)).where(RawCheckin.stress_level > 7)
-    )
-    high_stress_count = high_res.scalar() or 0
-
-    dept_res = await db.execute(
-        select(func.count(func.distinct(RawCheckin.dept_hash))).where(
-            RawCheckin.dept_hash.isnot(None)
+    summary_res = await db.execute(
+        select(
+            func.count(RawCheckin.id).label("total"),
+            func.avg(RawCheckin.stress_level).label("avg_stress"),
+            func.avg(RawCheckin.valence).label("avg_valence"),
+            func.count(case((RawCheckin.stress_level > 7, 1))).label("high_stress_count"),
+            func.count(func.distinct(RawCheckin.dept_hash)).label("active_departments"),
         )
     )
-    active_departments = dept_res.scalar() or 0
+    summary = summary_res.one()
 
     dist_res = await db.execute(
         select(RawCheckin.stress_level, func.count(RawCheckin.id).label("cnt"))
@@ -66,18 +59,15 @@ async def get_stats(db: AsyncSession = Depends(get_db)):
     )
     distribution = {row.stress_level: row.cnt for row in dist_res.all()}
 
-    # avg valence across all submissions (-1 to 1)
-    valence_res = await db.execute(select(func.avg(RawCheckin.valence)))
-    avg_valence = valence_res.scalar()
-
     return {
-        "total_checkins": total,
-        "avg_stress": round(avg_stress, 2) if avg_stress is not None else None,
-        "avg_valence": round(avg_valence, 3) if avg_valence is not None else None,
-        "high_stress_count": high_stress_count,
-        "active_departments": active_departments,
+        "total_checkins": summary.total or 0,
+        "avg_stress": round(summary.avg_stress, 2) if summary.avg_stress is not None else None,
+        "avg_valence": round(summary.avg_valence, 3) if summary.avg_valence is not None else None,
+        "high_stress_count": summary.high_stress_count or 0,
+        "active_departments": summary.active_departments or 0,
         "distribution": distribution,
     }
+
 
 
 @router.get("/trend")
@@ -134,8 +124,8 @@ async def get_trend(db: AsyncSession = Depends(get_db), days: int = 7):
 
 
 @router.post("/seed-production-data")
-@router.post("/sync-records")
 async def seed_production_data(db: AsyncSession = Depends(get_db)):
+
     """Populate 250+ diverse check-in records with embeddings and predictions."""
     from app.domains.dashboard.seeder import populate_rich_records
     return await populate_rich_records(db)

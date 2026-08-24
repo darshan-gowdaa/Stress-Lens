@@ -48,12 +48,6 @@ function stressLabel(level: number): string {
   return 'Critical';
 }
 
-function stressCategory(level: number): 'Low' | 'Medium' | 'High' {
-  if (level <= 3) return 'Low';
-  if (level <= 7) return 'Medium';
-  return 'High';
-}
-
 const sizes = {
   sm: { outer: 64, stroke: 5, fontSize: 16, emojiSize: 28 },
   md: { outer: 104, stroke: 8, fontSize: 26, emojiSize: 48 },
@@ -170,4 +164,5 @@ export default function StressGauge({
 }
 
 // Exports for reusable indicators across pages
-export { stressColor, stressLabel, stressIconUrl, stressGlowColor, stressCategory };
+export { stressColor, stressLabel, stressIconUrl, stressGlowColor };
+
