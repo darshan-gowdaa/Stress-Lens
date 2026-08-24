@@ -498,10 +498,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {data.trend.length === 0 ? (
-                  <EmptyState message="No trend data recorded for this time range." />
-                ) : (
-                  <div className="h-64 w-full mt-4">
+                <div className="h-64 w-full mt-4">
+                  {data.trend.length === 0 ? (
+                    <EmptyState message="No trend data recorded for this time range." />
+                  ) : (
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
                         data={data.trend}
@@ -542,13 +542,17 @@ export default function DashboardPage() {
                           domain={[0, 10]}
                         />
                         <RechartsTooltip
+                          cursor={{ stroke: 'var(--color-outline)', strokeWidth: 1, strokeDasharray: '4 4' }}
                           contentStyle={{
                             backgroundColor: 'var(--color-surface)',
                             borderRadius: '12px',
                             border: '1px solid var(--color-surface-variant)',
                             boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                             fontSize: '12px',
+                            color: 'var(--color-on-surface)'
                           }}
+                          itemStyle={{ color: 'var(--color-primary)' }}
+                          labelStyle={{ color: 'var(--color-on-surface-variant)', fontWeight: 600, marginBottom: '4px' }}
                         />
                         <Area
                           type="monotone"
@@ -561,8 +565,8 @@ export default function DashboardPage() {
                         />
                       </AreaChart>
                     </ResponsiveContainer>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </section>
@@ -697,13 +701,17 @@ export default function DashboardPage() {
                           domain={[0, 10]}
                         />
                         <RechartsTooltip
+                          cursor={{ fill: 'var(--color-surface-variant)', opacity: 0.4 }}
                           contentStyle={{
                             backgroundColor: 'var(--color-surface)',
                             borderRadius: '12px',
                             border: '1px solid var(--color-surface-variant)',
                             boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                             fontSize: '12px',
+                            color: 'var(--color-on-surface)'
                           }}
+                          itemStyle={{ color: 'var(--color-primary)' }}
+                          labelStyle={{ color: 'var(--color-on-surface-variant)', fontWeight: 600, marginBottom: '4px' }}
                         />
                         <Bar dataKey="avg_stress" name="Avg Stress" radius={[6, 6, 0, 0]}>
                           {data.aggregate.map((entry, idx) => (
@@ -817,13 +825,17 @@ export default function DashboardPage() {
                           domain={[-1, 1]}
                         />
                         <RechartsTooltip
+                          cursor={{ fill: 'var(--color-surface-variant)', opacity: 0.4 }}
                           contentStyle={{
                             backgroundColor: 'var(--color-surface)',
                             borderRadius: '12px',
                             border: '1px solid var(--color-surface-variant)',
                             boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                             fontSize: '12px',
+                            color: 'var(--color-on-surface)'
                           }}
+                          itemStyle={{ color: 'var(--color-primary)' }}
+                          labelStyle={{ color: 'var(--color-on-surface-variant)', fontWeight: 600, marginBottom: '4px' }}
                         />
                         <Bar dataKey="avg_valence" name="Avg Valence" radius={[4, 4, 0, 0]}>
                           {data.valenceCorr.map((entry, idx) => (
@@ -873,13 +885,17 @@ export default function DashboardPage() {
                           allowDecimals={false}
                         />
                         <RechartsTooltip
+                          cursor={{ fill: 'var(--color-surface-variant)', opacity: 0.4 }}
                           contentStyle={{
                             backgroundColor: 'var(--color-surface)',
                             borderRadius: '12px',
                             border: '1px solid var(--color-surface-variant)',
                             boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                             fontSize: '12px',
+                            color: 'var(--color-on-surface)'
                           }}
+                          itemStyle={{ color: 'var(--color-primary)' }}
+                          labelStyle={{ color: 'var(--color-on-surface-variant)', fontWeight: 600, marginBottom: '4px' }}
                         />
                         <Bar
                           dataKey="count"
