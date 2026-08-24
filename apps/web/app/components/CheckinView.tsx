@@ -502,7 +502,7 @@ export default function CheckinView({ currentPath = 'checkin' }: CheckinViewProp
 
                 {/* Category Filter Tabs */}
                 <div
-                  className="flex items-center gap-1 bg-[var(--color-surface-variant)]/60 p-1 rounded-full overflow-x-auto self-start sm:self-auto"
+                  className="flex flex-wrap items-center gap-1 bg-[var(--color-surface-variant)]/60 p-1 rounded-[var(--radius-xl)] w-full sm:w-auto"
                   role="tablist"
                   aria-label="Mood tag categories"
                 >
