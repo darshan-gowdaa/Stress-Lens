@@ -217,7 +217,7 @@ export default function DashboardPage() {
             {loading ? (
               <StatCardsSkeleton />
             ) : (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                   label="Total Submissions"
                   value={stats?.total_checkins ?? '—'}
@@ -498,7 +498,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="h-64 w-full mt-4">
+                <div className="h-64 w-full mt-4 min-w-0">
                   {data.trend.length === 0 ? (
                     <EmptyState message="No trend data recorded for this time range." />
                   ) : (
@@ -618,7 +618,7 @@ export default function DashboardPage() {
                 {data.aggregate.length === 0 ? (
                   <EmptyState message="No department data meets the anonymity threshold yet (requires ≥ 5 check-ins per group)." />
                 ) : heatmapView === 'grid' ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5">
+                  <div className="grid grid-cols-1 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5">
                     {data.aggregate.map((item, i) => {
                       const avgStress = item.avg_stress ?? 0;
                       const color = stressColor(Math.round(avgStress));
@@ -679,7 +679,7 @@ export default function DashboardPage() {
                     })}
                   </div>
                 ) : (
-                  <div className="h-64 w-full mt-2">
+                  <div className="h-64 w-full mt-2 min-w-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={data.aggregate}
@@ -803,7 +803,7 @@ export default function DashboardPage() {
                   <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5 mb-4">
                     Average VADER/RoBERTa sentiment valence (-1 to +1) per stress level
                   </p>
-                  <div className="h-56 w-full">
+                  <div className="h-56 w-full min-w-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={data.valenceCorr}
@@ -864,7 +864,7 @@ export default function DashboardPage() {
                   <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5 mb-4">
                     Prediction probability calibration across inference confidence bins
                   </p>
-                  <div className="h-56 w-full">
+                  <div className="h-56 w-full min-w-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={data.confidenceHist}
