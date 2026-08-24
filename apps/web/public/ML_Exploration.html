@@ -7,14 +7,26 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #6366f1;
-      --primary-light: #818cf8;
-      --border: #334155;
-      --code-bg: #0b0f19;
+      --bg: #fbfdfd;
+      --card-bg: #fbfdfd;
+      --text: #191c1d;
+      --text-muted: #3f484a;
+      --primary: #006874;
+      --primary-light: #004f58;
+      --border: #dbe4e6;
+      --code-bg: #f8fafc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #191c1d;
+        --card-bg: #191c1d;
+        --text: #e1e3e3;
+        --text-muted: #bfc8ca;
+        --primary: #4fd8eb;
+        --primary-light: #97f0ff;
+        --border: #3f484a;
+        --code-bg: #0b0f19;
+      }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -33,15 +45,15 @@
       border-bottom: 1px solid var(--border);
       padding-bottom: 1.5rem;
     }
-    h1 { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
-    h2 { font-size: 1.4rem; font-weight: 700; color: var(--primary-light); margin: 2rem 0 0.8rem; border-left: 4px solid var(--primary); padding-left: 0.75rem; }
-    h3 { font-size: 1.15rem; font-weight: 600; color: #e2e8f0; margin: 1.5rem 0 0.5rem; }
+    h1 { font-size: 2rem; font-weight: 800; color: var(--text); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin: 2rem 0 0.8rem; border-left: 4px solid var(--primary); padding-left: 0.75rem; }
+    h3 { font-size: 1.15rem; font-weight: 600; color: var(--text); margin: 1.5rem 0 0.5rem; }
     p { margin-bottom: 1rem; color: var(--text-muted); font-size: 0.95rem; }
     .badge {
       display: inline-block;
-      background: rgba(99, 102, 241, 0.2);
-      color: var(--primary-light);
-      border: 1px solid rgba(99, 102, 241, 0.4);
+      background: color-mix(in srgb, var(--primary) 20%, transparent);
+      color: var(--primary);
+      border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
       padding: 0.25rem 0.6rem;
       border-radius: 9999px;
       font-size: 0.75rem;
@@ -60,7 +72,7 @@
       border-radius: 12px;
       padding: 1.25rem;
     }
-    .metric-val { font-size: 1.75rem; font-weight: 800; color: #fff; }
+    .metric-val { font-size: 1.75rem; font-weight: 800; color: var(--text); }
     .metric-lbl { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
     .cell {
       background: var(--card-bg);
@@ -75,7 +87,7 @@
       border-bottom: 1px solid var(--border);
       font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
       font-size: 0.85rem;
-      color: #38bdf8;
+      color: var(--primary);
       overflow-x: auto;
       white-space: pre-wrap;
     }
@@ -136,22 +148,22 @@
     <div class="metrics-grid">
       <div class="metric-card">
         <div class="metric-lbl">Model Accuracy</div>
-        <div class="metric-val" style="color: #22c55e;">73.2%</div>
+        <div class="metric-val" style="color: var(--primary);">73.2%</div>
         <p style="font-size: 0.75rem; margin-top: 0.25rem;">3-class stress severity classifier</p>
       </div>
       <div class="metric-card">
         <div class="metric-lbl">Inference Latency</div>
-        <div class="metric-val" style="color: #38bdf8;">8.4 ms</div>
+        <div class="metric-val" style="color: var(--primary);">8.4 ms</div>
         <p style="font-size: 0.75rem; margin-top: 0.25rem;">Sub-10ms p95 response time</p>
       </div>
       <div class="metric-card">
         <div class="metric-lbl">Discovered Themes</div>
-        <div class="metric-val" style="color: #a855f7;">5 Topics</div>
+        <div class="metric-val" style="color: var(--primary);">5 Topics</div>
         <p style="font-size: 0.75rem; margin-top: 0.25rem;">BERTopic UMAP density clusters</p>
       </div>
       <div class="metric-card">
         <div class="metric-lbl">Privacy Guarantee</div>
-        <div class="metric-val" style="color: #f59e0b;">k ≥ 5</div>
+        <div class="metric-val" style="color: var(--primary);">k ≥ 5</div>
         <p style="font-size: 0.75rem; margin-top: 0.25rem;">Laplace Mechanism ε = 0.5</p>
       </div>
     </div>

@@ -16,7 +16,25 @@ def generate_weekly_summary(aggregated_stats: str) -> str:
         "and flag any urgent patterns. Keep it factual and empathetic.\n\n"
         f"Data:\n{aggregated_stats}"
     )
-    return _call_with_fallback(prompt, max_tokens=600)
+    result = _call_with_fallback(prompt, max_tokens=600)
+    if result:
+        return result
+    
+    # Local fallback if no API keys
+    try:
+        import ast
+        data = ast.literal_eval(aggregated_stats)
+        if isinstance(data, list):
+            lines = ["Local Topic Extraction (LLM Offline):\n"]
+            for d in data:
+                name = d.get('Name', d.get('Name', str(d)))
+                count = d.get('Count', '')
+                lines.append(f"• {name}: {count} related check-ins")
+            lines.append("\nNote: Add GOOGLE_API_KEY to enable full AI summarization and actionable insights.")
+            return "\n".join(lines)
+    except:
+        pass
+    return f"Local Topic Extraction (LLM Offline):\n\n{aggregated_stats}\n\nNote: Add GOOGLE_API_KEY to enable full AI summarization."
 
 
 def generate_checkin_nudge(stress_level: int, tags: list[str], category: str) -> str:
