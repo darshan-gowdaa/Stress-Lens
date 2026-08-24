@@ -636,7 +636,17 @@ export default function DashboardPage() {
                             className="absolute top-0 left-0 right-0 h-1.5"
                             style={{ backgroundColor: color }}
                           />
-                          <div>
+                          
+                          {/* Large Animated Emoji on Right */}
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-80 pointer-events-none">
+                            <img 
+                              src={stressIconUrl(Math.round(avgStress))} 
+                              alt="Stress emoji" 
+                              className="w-12 h-12 object-contain drop-shadow-md animate-pulse" 
+                            />
+                          </div>
+
+                          <div className="relative z-10 pr-14">
                             <p
                               className="text-xs font-semibold text-[var(--color-on-surface)] truncate mb-2"
                               title={deptTitle}
@@ -656,16 +666,11 @@ export default function DashboardPage() {
                             </div>
                           </div>
 
-                          <div className="mt-3 pt-2 border-t border-[var(--color-outline-variant)]/20 flex items-center justify-between text-[11px] text-[var(--color-on-surface-variant)]">
+                          <div className="relative z-10 mt-3 pt-2 border-t border-[var(--color-outline-variant)]/20 flex items-center justify-between text-[11px] text-[var(--color-on-surface-variant)]">
                             <span>{item.count} submissions</span>
                             {item.avg_valence != null && (
                               <span>
-                                {item.avg_valence > 0.1
-                                  ? '😊'
-                                  : item.avg_valence < -0.1
-                                  ? '😔'
-                                  : '😐'}{' '}
-                                {item.avg_valence.toFixed(1)}
+                                Val: {item.avg_valence > 0 ? '+' : ''}{item.avg_valence.toFixed(2)}
                               </span>
                             )}
                           </div>
@@ -713,7 +718,7 @@ export default function DashboardPage() {
                           itemStyle={{ color: 'var(--color-primary)' }}
                           labelStyle={{ color: 'var(--color-on-surface-variant)', fontWeight: 600, marginBottom: '4px' }}
                         />
-                        <Bar dataKey="avg_stress" name="Avg Stress" radius={[6, 6, 0, 0]}>
+                        <Bar dataKey="avg_stress" name="Avg Stress" radius={[6, 6, 0, 0]} fill="var(--color-primary)">
                           {data.aggregate.map((entry, idx) => (
                             <Cell
                               key={`cell-${idx}`}
@@ -837,7 +842,7 @@ export default function DashboardPage() {
                           itemStyle={{ color: 'var(--color-primary)' }}
                           labelStyle={{ color: 'var(--color-on-surface-variant)', fontWeight: 600, marginBottom: '4px' }}
                         />
-                        <Bar dataKey="avg_valence" name="Avg Valence" radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="avg_valence" name="Avg Valence" radius={[4, 4, 0, 0]} fill="var(--color-primary)">
                           {data.valenceCorr.map((entry, idx) => (
                             <Cell
                               key={`corr-${idx}`}
