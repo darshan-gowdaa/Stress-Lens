@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Outfit and Inter loaded via next/font in layout.tsx, applied via CSS variable below */
 @theme {
   --color-primary: #006874;
