@@ -1300,7 +1300,7 @@ function CourseScatterChart({ data }: { data: CourseAggregateItem[] }) {
           <RechartsTooltip
             cursor={{ strokeDasharray: '3 3' }}
             contentStyle={{ backgroundColor: 'var(--color-surface)', borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-md)', color: 'var(--color-on-surface)', fontSize: '12px' }}
-            formatter={(value: any, name: string) => name === 'Avg Stress' ? [Number(value).toFixed(1), name] : [value, name]}
+            formatter={(value: any, name: string | number) => name === 'Avg Stress' ? [Number(value).toFixed(1), name] : [value, name]}
             labelFormatter={() => ''}
           />
           <Scatter data={data}>
