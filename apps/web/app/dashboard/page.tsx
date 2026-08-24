@@ -18,6 +18,7 @@ import {
 import { stressColor, stressIconUrl } from '../components/StressGauge';
 import {
   getDashboardAggregate,
+  getCourseAggregate,
   getDashboardStats,
   getDashboardPredictions,
   getDashboardTrend,
@@ -30,6 +31,7 @@ import {
   semanticSearch,
   type TopStressDriver,
   type AggregateItem,
+  type CourseAggregateItem,
   type StatsResponse,
   type PredictionsResponse,
   type TrendPoint,
@@ -49,10 +51,19 @@ const CartesianGrid = dynamic(() => import('recharts').then((mod) => mod.Cartesi
 const RechartsTooltip = dynamic(() => import('recharts').then((mod) => mod.Tooltip), { ssr: false });
 const ResponsiveContainer = dynamic(() => import('recharts').then((mod) => mod.ResponsiveContainer), { ssr: false });
 const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell), { ssr: false });
+const ScatterChart = dynamic(() => import('recharts').then((mod) => mod.ScatterChart), { ssr: false });
+const Scatter = dynamic(() => import('recharts').then((mod) => mod.Scatter), { ssr: false });
+const ZAxis = dynamic(() => import('recharts').then((mod) => mod.ZAxis), { ssr: false });
+const RadarChart = dynamic(() => import('recharts').then((mod) => mod.RadarChart), { ssr: false });
+const PolarGrid = dynamic(() => import('recharts').then((mod) => mod.PolarGrid), { ssr: false });
+const PolarAngleAxis = dynamic(() => import('recharts').then((mod) => mod.PolarAngleAxis), { ssr: false });
+const PolarRadiusAxis = dynamic(() => import('recharts').then((mod) => mod.PolarRadiusAxis), { ssr: false });
+const Radar = dynamic(() => import('recharts').then((mod) => mod.Radar), { ssr: false });
 
 interface DashboardData {
   stats: StatsResponse | null;
   aggregate: AggregateItem[];
+  courseAggregate: CourseAggregateItem[];
   predictions: PredictionsResponse | null;
   trend: TrendPoint[];
   mlHealth: MLHealthResponse | null;
@@ -82,6 +93,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData>({
     stats: null,
     aggregate: [],
+    courseAggregate: [],
     predictions: null,
     trend: [],
     mlHealth: null,
@@ -102,6 +114,7 @@ export default function DashboardPage() {
         const [
           statsRes,
           aggRes,
+          courseRes,
           predRes,
           trendRes,
           mlRes,
@@ -112,6 +125,7 @@ export default function DashboardPage() {
         ] = await Promise.allSettled([
           getDashboardStats(),
           getDashboardAggregate(),
+          getCourseAggregate(),
           getDashboardPredictions(),
           getDashboardTrend(days),
           getMLHealth(),
@@ -124,6 +138,7 @@ export default function DashboardPage() {
         setData({
           stats: statsRes.status === 'fulfilled' ? statsRes.value : null,
           aggregate: aggRes.status === 'fulfilled' ? aggRes.value.data : [],
+          courseAggregate: courseRes.status === 'fulfilled' ? courseRes.value.data : [],
           predictions: predRes.status === 'fulfilled' ? predRes.value : null,
           trend: trendRes.status === 'fulfilled' ? trendRes.value.data : [],
           mlHealth: mlRes.status === 'fulfilled' ? mlRes.value : null,
@@ -1266,6 +1281,57 @@ function EmptyState({ message }: { message: string }) {
       <p className="text-xs font-medium text-[var(--color-on-surface-variant)] max-w-sm leading-relaxed">
         {message}
       </p>
+    </div>
+  );
+}
+
+function CourseScatterChart({ data }: { data: CourseAggregateItem[] }) {
+  if (!data || data.length === 0) {
+    return <div className="text-xs text-[var(--color-on-surface-variant)] italic p-4 text-center">No course data available.</div>;
+  }
+  return (
+    <div className="h-64 w-full min-w-0 mt-2">
+      <ResponsiveContainer width="100%" height="100%">
+        <ScatterChart margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" vertical={false} opacity={0.3} />
+          <XAxis type="number" dataKey="cnt" name="Responses" stroke="var(--color-on-surface-variant)" fontSize={11} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+          <YAxis type="number" dataKey="avg_stress" name="Avg Stress" stroke="var(--color-on-surface-variant)" fontSize={11} tickLine={false} axisLine={false} domain={[1, 10]} />
+          <ZAxis type="number" dataKey="cnt" range={[60, 400]} />
+          <RechartsTooltip
+            cursor={{ strokeDasharray: '3 3' }}
+            contentStyle={{ backgroundColor: 'var(--color-surface)', borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-md)', color: 'var(--color-on-surface)', fontSize: '12px' }}
+            formatter={(value: any, name: string) => name === 'Avg Stress' ? [Number(value).toFixed(1), name] : [value, name]}
+            labelFormatter={() => ''}
+          />
+          <Scatter data={data}>
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={stressColor(entry.avg_stress || 5)} />
+            ))}
+          </Scatter>
+        </ScatterChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function DepartmentRadarChart({ data }: { data: AggregateItem[] }) {
+  if (!data || data.length === 0) {
+    return <div className="text-xs text-[var(--color-on-surface-variant)] italic p-4 text-center">No department data available.</div>;
+  }
+  return (
+    <div className="h-64 w-full min-w-0 mt-2">
+      <ResponsiveContainer width="100%" height="100%">
+        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+          <PolarGrid stroke="var(--color-outline-variant)" opacity={0.5} />
+          <PolarAngleAxis dataKey="dept_hash" tick={{ fill: 'var(--color-on-surface-variant)', fontSize: 10 }} />
+          <PolarRadiusAxis angle={30} domain={[1, 10]} tick={{ fill: 'var(--color-on-surface-variant)', fontSize: 10 }} />
+          <RechartsTooltip
+            contentStyle={{ backgroundColor: 'var(--color-surface)', borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-md)', color: 'var(--color-on-surface)', fontSize: '12px' }}
+            formatter={(value: any) => [Number(value).toFixed(1), 'Avg Stress']}
+          />
+          <Radar name="Stress" dataKey="avg_stress" stroke="var(--color-error)" fill="var(--color-error)" fillOpacity={0.4} />
+        </RadarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

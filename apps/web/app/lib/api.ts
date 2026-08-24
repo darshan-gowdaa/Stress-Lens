@@ -164,6 +164,16 @@ export interface TopStressDriver {
   importance: number;
 }
 
+export interface CourseAggregateItem {
+  course_hash: string | null;
+  avg_stress: number | null;
+  cnt: number;
+}
+
+export function getCourseAggregate(): Promise<{ data: CourseAggregateItem[] }> {
+  return apiFetch('/dashboard/course-aggregate');
+}
+
 export function getTopStressDrivers(): Promise<{ data: TopStressDriver[] }> {
   return apiFetch('/dashboard/top-stress-drivers');
 }
