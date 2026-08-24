@@ -1,25 +1,4 @@
 from fastapi import APIRouter, Depends
-import time
-from functools import wraps
-
-def simple_cache(ttl_seconds: int = 300):
-    cache = {}
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Exclude 'db' from cache key as it is not hashable and is the same across requests for the route
-            key_kwargs = {k: v for k, v in kwargs.items() if k != 'db'}
-            key = f"{func.__name__}_{args}_{key_kwargs}"
-            now = time.time()
-            if key in cache:
-                res, ts = cache[key]
-                if now - ts < ttl_seconds:
-                    return res
-            res = await func(*args, **kwargs)
-            cache[key] = (res, now)
-            return res
-        return wrapper
-    return decorator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text
 from app.core.database import get_db
@@ -31,8 +10,8 @@ router = APIRouter()
 
 
 @router.get("/aggregate")
-@simple_cache(ttl_seconds=300)
 async def get_aggregate(db: AsyncSession = Depends(get_db)):
+
     """Avg stress per department (k-anonymity enforced - min group size)."""
     result = await db.execute(
         select(
@@ -59,7 +38,6 @@ async def get_aggregate(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/stats")
-@simple_cache(ttl_seconds=300)
 async def get_stats(db: AsyncSession = Depends(get_db)):
     """Overall stats: total, avg stress, distribution, high-stress count, active depts."""
     total_res = await db.execute(select(func.count(RawCheckin.id)))
@@ -103,8 +81,8 @@ async def get_stats(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/trend")
-@simple_cache(ttl_seconds=300)
 async def get_trend(db: AsyncSession = Depends(get_db), days: int = 7):
+
     """Avg stress per day for the last N days (default 7, max 30)."""
     days = min(days, 30)
     
@@ -203,8 +181,8 @@ async def ml_health():
 
 
 @router.get("/insights")
-@simple_cache(ttl_seconds=300)
 async def get_insights(db: AsyncSession = Depends(get_db)):
+
     """Return high-level AI-ready signals for the dashboard insights panel.
 
     All aggregated — no individual records exposed.
@@ -369,8 +347,8 @@ async def trigger_clustering():
 
 
 @router.get("/top-stress-drivers")
-@simple_cache(ttl_seconds=3600)
 async def get_top_stress_drivers(db: AsyncSession = Depends(get_db)):
+
     """Returns top keywords strongly associated with High Stress using TF-IDF."""
     from sklearn.feature_extraction.text import TfidfVectorizer
     import numpy as np

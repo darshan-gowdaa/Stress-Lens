@@ -11,8 +11,10 @@ router = APIRouter()
 
 
 @router.post("/", response_model=schemas.CheckinResponse)
+@router.post("", response_model=schemas.CheckinResponse, include_in_schema=False)
 async def submit_checkin(checkin: schemas.CheckinCreate, db: AsyncSession = Depends(get_db)):
     return await service.create_checkin(db, checkin)
+
 
 
 class NudgeRequest(BaseModel):

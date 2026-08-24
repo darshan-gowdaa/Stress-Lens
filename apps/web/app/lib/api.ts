@@ -1,6 +1,13 @@
 // centralized API client - all fetch calls live here
-// Use absolute URL on the server, relative /api path on the client to hit next.js proxy
-const API_BASE = typeof window === 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000') : '/api';
+const defaultApiUrl =
+  process.env.NODE_ENV === 'production'
+    ? 'https://stress-lens-api.onrender.com'
+    : 'http://127.0.0.1:8000';
+
+const API_BASE =
+  typeof window === 'undefined'
+    ? (process.env.NEXT_PUBLIC_API_URL || defaultApiUrl)
+    : '/api';
 
 export interface CheckinPayload {
   stress_level: number;
@@ -76,6 +83,7 @@ export interface InsightsResponse {
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
+    cache: 'no-store',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
   });
   if (!res.ok) {
@@ -84,6 +92,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   }
   return res.json();
 }
+
 
 export function submitCheckin(data: CheckinPayload): Promise<CheckinResponse> {
   return apiFetch('/checkins/', { method: 'POST', body: JSON.stringify(data) });
