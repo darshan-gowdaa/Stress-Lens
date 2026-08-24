@@ -1,11 +1,36 @@
 from app.ml.celery_app import celery_app
 from app.ml.registry import get_current_model
-from sentence_transformers import SentenceTransformer
-from bertopic import BERTopic
 import numpy as np
 
-# load once at worker startup — avoids repeated cold-loads per task
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
+# Lazy load sentence transformer with fallback for low-memory environments
+_embedder = None
+
+def get_embedder():
+    global _embedder
+    if _embedder is None:
+        try:
+            from sentence_transformers import SentenceTransformer
+            _embedder = SentenceTransformer("all-MiniLM-L6-v2")
+        except Exception:
+            class _TFIDFEmbedder:
+                def __init__(self):
+                    from sklearn.feature_extraction.text import HashingVectorizer
+                    self.vectorizer = HashingVectorizer(n_features=384, alternate_sign=False)
+                def encode(self, text, normalize_embeddings=True):
+                    if isinstance(text, str):
+                        vec = self.vectorizer.transform([text]).toarray()[0]
+                    else:
+                        vec = self.vectorizer.transform(text).toarray()
+                    norm = np.linalg.norm(vec)
+                    return (vec / (norm or 1.0)).tolist() if normalize_embeddings else vec.tolist()
+            _embedder = _TFIDFEmbedder()
+    return _embedder
+
+class _LazyEmbedder:
+    def encode(self, *args, **kwargs):
+        return get_embedder().encode(*args, **kwargs)
+
+embedder = _LazyEmbedder()
 
 # label names aligned with baseline model outputs
 LABEL_MAP = {"low": "Low", "medium": "Medium", "high": "High",
@@ -108,10 +133,19 @@ def weekly_clustering():
     if len(docs) < 10:
         return {"skipped": True, "reason": "not enough data", "needed": 10 - len(docs)}
 
-    topic_model = BERTopic(min_topic_size=5, calculate_probabilities=False)
-    topics, _ = topic_model.fit_transform(docs)
+    try:
+        from bertopic import BERTopic
+        topic_model = BERTopic(min_topic_size=5, calculate_probabilities=False)
+        topics, _ = topic_model.fit_transform(docs)
+        topic_info = topic_model.get_topic_info().to_dict(orient="records")
+    except Exception:
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        vec = TfidfVectorizer(stop_words="english", max_features=10)
+        vec.fit(docs)
+        terms = vec.get_feature_names_out().tolist()
+        topic_info = [{"Topic": i, "Count": max(len(docs)//max(len(terms), 1), 1), "Name": term} for i, term in enumerate(terms)]
+        topics = list(range(len(topic_info)))
 
-    topic_info = topic_model.get_topic_info().to_dict(orient="records")
     # pass top 10 topics with their representative words
     summary = generate_weekly_summary(str(topic_info[:10]))
     return {

@@ -1,9 +1,16 @@
 'use client';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell
-} from 'recharts';
-
+import dynamic from 'next/dynamic';
 import { useEffect, useState, useCallback } from 'react';
+
+// Lazy load Recharts to reduce initial JS bundle
+const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false });
+const Bar = dynamic(() => import('recharts').then(mod => mod.Bar), { ssr: false });
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false });
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false });
+const RechartsTooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), { ssr: false });
 import Navbar from '../components/Navbar';
 import ToastContainer, { toast } from '../components/Toast';
 import { StatCardSkeleton, ChartSkeleton, DeptCardSkeleton } from '../components/LoadingSkeleton';

@@ -6,8 +6,10 @@
     "dev:api": "cd apps/api && uv run uvicorn app.main:app --port 8000",
     "dev:web": "cd apps/web && npm run dev",
     "dev:docker": "docker compose up -d",
-    "kill": "docker compose down && Stop-Process -Name node -ErrorAction SilentlyContinue && Stop-Process -Name python -ErrorAction SilentlyContinue",
-    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\""
+    "kill": "powershell -NoProfile -Command \"$ErrorActionPreference = 'SilentlyContinue'; Get-NetTCPConnection -LocalPort 8000,3000 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }; exit 0\"",
+    "dev": "npm start",
+    "start": "concurrently -n \"api,web\" -c \"cyan,magenta\" \"npm run dev:api\" \"npm run dev:web\"",
+    "restart": "npm run kill && npm start"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

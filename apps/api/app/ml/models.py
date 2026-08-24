@@ -1,12 +1,22 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
 # 3 output classes: 0=Low, 1=Medium, 2=High stress
 NUM_CLASSES = 3
+
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    _TORCH_AVAILABLE = True
+except Exception:
+    _TORCH_AVAILABLE = False
+    class _DummyModule:
+        pass
+    torch = None
+    nn = type('nn', (), {'Module': _DummyModule})()
+    F = None
 
 
 class StressMLP(nn.Module):

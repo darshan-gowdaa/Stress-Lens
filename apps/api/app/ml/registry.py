@@ -1,9 +1,6 @@
-import mlflow
 import time
 from app.core.config import settings
 from app.ml.models import get_baseline_model
-
-mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
 
 # cached model + metadata so we don't reload on every prediction
 _cache: dict = {"model": None, "loaded_at": 0, "source": "none"}
@@ -20,6 +17,9 @@ def get_current_model():
         return _cache["model"]
 
     try:
+        import mlflow
+        import mlflow.sklearn
+        mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
         model = mlflow.sklearn.load_model("models:/stress_classifier/Production")
         if not hasattr(model, "predict"):
             raise ValueError("Model missing predict")
