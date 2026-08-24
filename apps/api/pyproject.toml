@@ -5,7 +5,8 @@ description = "StressLens Backend API"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.111.0",
-    "uvicorn>=0.30.0",
+    "uvicorn[standard]>=0.30.0",
+    "gunicorn>=22.0.0",
     "pydantic>=2.0",
     "sqlalchemy[asyncio]>=2.0",
     "aiosqlite>=0.20.0",
@@ -13,6 +14,7 @@ dependencies = [
     "asyncpg>=0.29",
     "greenlet>=3.0",
     "psycopg2-binary>=2.9",
+    "pgvector>=0.2.0",
     "celery>=5.3",
     "redis>=5.0",
     "scikit-learn>=1.4",
@@ -24,3 +26,4 @@ dependencies = [
     "python-dotenv>=1.0",
     "google-generativeai>=0.7",
 ]
+

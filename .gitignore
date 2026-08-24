@@ -1,15 +1,41 @@
+# Dependencies
 node_modules/
+.venv/
+__pypackages__/
+
+# Environment & local secrets
 .env
 .env.local
+.env.*.local
+
+# Build & runtime artifacts
 dist/
 build/
-.ds_store
+.next/
+out/
+*.egg-info/
+.eggs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python bytecode & caches
 __pycache__/
-*.pyc
-*.md
-!README.md
-!**/README.md
-.vscode/
-.venv/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Databases & ML tracking artifacts
 *.db
-apps/stresslens.db
+*.sqlite
+*.sqlite3
+mlruns/
+.mlflow/
+
+# IDE configs
+.vscode/
+.idea/
+

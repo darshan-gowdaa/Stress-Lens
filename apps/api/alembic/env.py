@@ -13,11 +13,12 @@ from app.core.database import Base
 from app.domains.checkins.repository import RawCheckin, Prediction  # noqa: F401
 
 config = context.config
-# override sqlalchemy.url from settings (uses sync psycopg2 driver)
+# override sqlalchemy.url from settings (uses sync driver)
 config.set_main_option(
     "sqlalchemy.url",
-    settings.SYNC_DATABASE_URL.replace("+asyncpg", "").replace("+aiosqlite", ""),
+    settings.sync_database_url,
 )
+
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

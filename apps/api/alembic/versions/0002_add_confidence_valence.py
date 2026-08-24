@@ -14,13 +14,29 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # valence: lexicon-based sentiment score in [-1, 1] stored on each check-in
-    op.add_column("raw_checkins", sa.Column("valence", sa.Float, nullable=True))
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
 
-    # confidence: max-softmax probability from the stress classifier (0–1)
-    op.add_column("predictions", sa.Column("confidence", sa.Float, nullable=True))
+    if insp.has_table("raw_checkins"):
+        cols = [c["name"] for c in insp.get_columns("raw_checkins")]
+        if "valence" not in cols:
+            op.add_column("raw_checkins", sa.Column("valence", sa.Float, nullable=True))
+
+    if insp.has_table("predictions"):
+        cols = [c["name"] for c in insp.get_columns("predictions")]
+        if "confidence" not in cols:
+            op.add_column("predictions", sa.Column("confidence", sa.Float, nullable=True))
 
 
 def downgrade() -> None:
-    op.drop_column("predictions", "confidence")
-    op.drop_column("raw_checkins", "valence")
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    if insp.has_table("predictions"):
+        cols = [c["name"] for c in insp.get_columns("predictions")]
+        if "confidence" in cols:
+            op.drop_column("predictions", "confidence")
+    if insp.has_table("raw_checkins"):
+        cols = [c["name"] for c in insp.get_columns("raw_checkins")]
+        if "valence" in cols:
+            op.drop_column("raw_checkins", "valence")
+

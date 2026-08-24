@@ -322,15 +322,13 @@ class SearchQuery(BaseModel):
 @router.post("/semantic-search")
 async def semantic_search(query: SearchQuery, db: AsyncSession = Depends(get_db)):
     """Search historical check-ins semantically."""
-    from sentence_transformers import SentenceTransformer
     import json
     import numpy as np
-    
-    # We should cache the encoder, but for simplicity here we just use what's loaded 
-    # or load it. Actually better to use the embedder in ml/tasks.py
     from app.ml.tasks import embedder
     
-    query_emb = embedder.encode(query.text, normalize_embeddings=True).tolist()
+    query_emb = embedder.encode(query.text, normalize_embeddings=True)
+    if hasattr(query_emb, "tolist"):
+        query_emb = query_emb.tolist()
     
     # fetch all embeddings from DB
     result = await db.execute(select(RawCheckin.id, RawCheckin.text_redacted, RawCheckin.stress_level, RawCheckin.embedding).where(RawCheckin.embedding.isnot(None)))
@@ -369,7 +367,6 @@ async def trigger_clustering():
     except Exception as e:
         return {"error": str(e)}
 
-from pydantic import BaseModel
 
 @router.get("/top-stress-drivers")
 @simple_cache(ttl_seconds=3600)

@@ -29,5 +29,11 @@ async def create_checkin(db: AsyncSession, checkin: CheckinCreate) -> RawCheckin
         raise e
 
     # fire-and-forget celery task
-    predict_stress_category.delay(db_checkin.id, redacted)
+    try:
+        predict_stress_category.delay(db_checkin.id, redacted)
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning("Failed to dispatch predict_stress_category: %s", exc)
+
     return db_checkin
+

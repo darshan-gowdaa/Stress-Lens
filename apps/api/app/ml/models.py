@@ -86,10 +86,19 @@ class DistilBertEncoder(BaseEstimator, TransformerMixin):
         return self
         
     def transform(self, X):
-        from sentence_transformers import SentenceTransformer
-        if self.encoder is None:
-            self.encoder = SentenceTransformer(self.model_name)
-        return self.encoder.encode(X)
+        try:
+            from sentence_transformers import SentenceTransformer
+            if self.encoder is None:
+                self.encoder = SentenceTransformer(self.model_name)
+            return self.encoder.encode(X)
+        except Exception:
+            from sklearn.feature_extraction.text import HashingVectorizer
+            import numpy as np
+            vec = HashingVectorizer(n_features=384, alternate_sign=False).transform(X).toarray()
+            norm = np.linalg.norm(vec, axis=1, keepdims=True)
+            norm[norm == 0] = 1.0
+            return vec / norm
+
 
 
 def get_baseline_model() -> Pipeline:

@@ -19,10 +19,17 @@ def get_embedder():
                 def encode(self, text, normalize_embeddings=True):
                     if isinstance(text, str):
                         vec = self.vectorizer.transform([text]).toarray()[0]
+                        if normalize_embeddings:
+                            norm = float(np.linalg.norm(vec))
+                            vec = vec / (norm or 1.0)
+                        return vec
                     else:
                         vec = self.vectorizer.transform(text).toarray()
-                    norm = np.linalg.norm(vec)
-                    return (vec / (norm or 1.0)).tolist() if normalize_embeddings else vec.tolist()
+                        if normalize_embeddings:
+                            norm = np.linalg.norm(vec, axis=1, keepdims=True)
+                            norm[norm == 0] = 1.0
+                            vec = vec / norm
+                        return vec
             _embedder = _TFIDFEmbedder()
     return _embedder
 
@@ -59,7 +66,7 @@ def predict_stress_category(self, checkin_id: int, text: str):
     Stores:
     - predicted category (Low/Medium/High) in predictions table
     - confidence score (0–1) for the prediction
-    - sentence embedding as pgvector for semantic similarity queries
+    - sentence embedding as json string for semantic similarity queries
     - valence score on the raw_checkins row for downstream filtering
     """
     try:
@@ -73,11 +80,16 @@ def predict_stress_category(self, checkin_id: int, text: str):
             proba = model.predict_proba([text])[0]
             confidence = round(float(np.max(proba)), 4)
 
-        embedding = embedder.encode(text, normalize_embeddings=True).tolist()
+        raw_emb = embedder.encode(text, normalize_embeddings=True)
+        embedding = raw_emb.tolist() if hasattr(raw_emb, "tolist") else list(raw_emb)
         valence = _sentiment_score(text)
 
     except Exception as exc:
-        raise self.retry(exc=exc, countdown=5)
+        try:
+            raise self.retry(exc=exc, countdown=5)
+        except Exception:
+            return {"category": "Medium", "confidence": None, "valence": 0.0}
+
 
     from app.core.sync_database import SyncSessionLocal
     from sqlalchemy import text as sa_text

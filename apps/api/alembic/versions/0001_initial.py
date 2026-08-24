@@ -6,7 +6,6 @@ Create Date: 2026-08-04
 """
 from alembic import op
 import sqlalchemy as sa
-import pgvector.sqlalchemy
 
 revision = "0001"
 down_revision = None
@@ -15,29 +14,45 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("CREATE EXTENSION IF NOT EXISTS vector")
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
 
-    op.create_table(
-        "raw_checkins",
-        sa.Column("id", sa.Integer, primary_key=True, index=True),
-        sa.Column("stress_level", sa.Integer, nullable=False),
-        sa.Column("text_redacted", sa.Text, nullable=False),
-        sa.Column("course_hash", sa.String, nullable=True),
-        sa.Column("dept_hash", sa.String, nullable=True),
-        sa.Column("tags", sa.Text, nullable=True),
-        sa.Column("embedding", pgvector.sqlalchemy.Vector(384), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
-    )
+    if bind.dialect.name == "postgresql":
+        try:
+            op.execute("CREATE EXTENSION IF NOT EXISTS vector")
+        except Exception:
+            pass
 
-    op.create_table(
-        "predictions",
-        sa.Column("id", sa.Integer, primary_key=True, index=True),
-        sa.Column("checkin_id", sa.Integer, sa.ForeignKey("raw_checkins.id"), unique=True, nullable=False),
-        sa.Column("category", sa.String(50), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
-    )
+    if not insp.has_table("raw_checkins"):
+        op.create_table(
+            "raw_checkins",
+            sa.Column("id", sa.Integer, primary_key=True, index=True),
+            sa.Column("stress_level", sa.Integer, nullable=False),
+            sa.Column("text_redacted", sa.Text, nullable=False),
+            sa.Column("course_hash", sa.String, nullable=True),
+            sa.Column("dept_hash", sa.String, nullable=True),
+            sa.Column("tags", sa.Text, nullable=True),
+            sa.Column("sleep_hours", sa.Integer, nullable=True),
+            sa.Column("embedding", sa.Text, nullable=True),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+        )
+
+    if not insp.has_table("predictions"):
+        op.create_table(
+            "predictions",
+            sa.Column("id", sa.Integer, primary_key=True, index=True),
+            sa.Column("checkin_id", sa.Integer, sa.ForeignKey("raw_checkins.id"), unique=True, nullable=False),
+            sa.Column("category", sa.String(50), nullable=False),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+        )
 
 
 def downgrade() -> None:
-    op.drop_table("predictions")
-    op.drop_table("raw_checkins")
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    if insp.has_table("predictions"):
+        op.drop_table("predictions")
+    if insp.has_table("raw_checkins"):
+        op.drop_table("raw_checkins")
+
+
