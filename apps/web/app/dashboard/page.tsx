@@ -1,6 +1,7 @@
 'use client';
 import dynamic from 'next/dynamic';
 import { useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import ToastContainer, { toast } from '../components/Toast';
 import {
@@ -68,6 +69,16 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 25 } }
+  };
+
   const [data, setData] = useState<DashboardData>({
     stats: null,
     aggregate: [],
@@ -165,7 +176,7 @@ export default function DashboardPage() {
       <ToastContainer />
 
       <main className="flex-1 px-4 py-8 sm:py-10 bg-[var(--color-background)]">
-        <div className="max-w-6xl mx-auto space-y-8">
+        <motion.div className="max-w-6xl mx-auto space-y-8" variants={containerVariants} initial="hidden" animate="show">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
             <div>
@@ -212,7 +223,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 1. Overview Statistics Cards */}
-          <section aria-labelledby="stats-heading">
+          <motion.section variants={itemVariants} aria-labelledby="stats-heading">
             <h2 id="stats-heading" className="sr-only">Overview Statistics</h2>
             {loading ? (
               <StatCardsSkeleton />
@@ -258,10 +269,10 @@ export default function DashboardPage() {
                 />
               </div>
             )}
-          </section>
+          </motion.section>
 
           {/* 2. Live Velocity & Distress Signals */}
-          <section aria-labelledby="insights-heading">
+          <motion.section variants={itemVariants} aria-labelledby="insights-heading">
             {loading ? (
               <LiveInsightsSkeleton />
             ) : data.insights ? (
@@ -364,10 +375,10 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : null}
-          </section>
+          </motion.section>
 
           {/* 3. Stress Distribution & ML Prediction Categories */}
-          <section aria-labelledby="dist-and-cat-heading">
+          <motion.section variants={itemVariants} aria-labelledby="dist-and-cat-heading">
             <h2 id="dist-and-cat-heading" className="sr-only">
               Stress Distribution & ML Categories
             </h2>
@@ -451,10 +462,10 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
-          </section>
+          </motion.section>
 
           {/* 4. Stress Trend Over Time */}
-          <section aria-labelledby="trend-heading">
+          <motion.section variants={itemVariants} aria-labelledby="trend-heading">
             {loading ? (
               <TrendChartSkeleton />
             ) : (
@@ -569,10 +580,10 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
-          </section>
+          </motion.section>
 
           {/* 5. Department Stress Heatmap & Analytics */}
-          <section aria-labelledby="dept-heading">
+          <motion.section variants={itemVariants} aria-labelledby="dept-heading">
             {loading ? (
               <DepartmentHeatmapSkeleton />
             ) : (
@@ -732,10 +743,10 @@ export default function DashboardPage() {
                 )}
               </div>
             )}
-          </section>
+          </motion.section>
 
           {/* 6. Key Stress Drivers [TF-IDF Predictive Features] */}
-          <section aria-labelledby="drivers-heading">
+          <motion.section variants={itemVariants} aria-labelledby="drivers-heading">
             {loading ? (
               <KeyDriversSkeleton />
             ) : (
@@ -783,10 +794,10 @@ export default function DashboardPage() {
                 )}
               </div>
             )}
-          </section>
+          </motion.section>
 
           {/* 7. Advanced Visual Analytics (Python Analytics Endpoints) */}
-          <section aria-labelledby="analytics-heading">
+          <motion.section variants={itemVariants} aria-labelledby="analytics-heading">
             <h2 id="analytics-heading" className="sr-only">
               Advanced Visual Analytics
             </h2>
@@ -914,18 +925,18 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
-          </section>
+          </motion.section>
 
           {/* 8. Weekly Clustering [BERTopic + LLM Summarization] */}
-          <section aria-labelledby="clustering-heading">
+          <motion.section variants={itemVariants} aria-labelledby="clustering-heading">
             {loading ? <ClusteringSkeleton /> : <ClusteringPanel />}
-          </section>
+          </motion.section>
 
           {/* 9. Semantic Search [Cosine Similarity on Vector Embeddings] */}
-          <section aria-labelledby="search-heading">
+          <motion.section variants={itemVariants} aria-labelledby="search-heading">
             {loading ? <SemanticSearchSkeleton /> : <SemanticSearchPanel />}
-          </section>
-        </div>
+          </motion.section>
+        </motion.div>
       </main>
     </>
   );
@@ -1034,6 +1045,16 @@ function ClusteringPanel() {
     error?: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 25 } }
+  };
 
   const handleRun = async () => {
     setLoading(true);
