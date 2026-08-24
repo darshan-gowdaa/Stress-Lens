@@ -1,6 +1,5 @@
 <div align="center">
   <img width="800" height="200" alt="StressLens Banner" src="https://placehold.co/800x200/20232A/FFF?text=StressLens+Analytics" />
-  
   <h3>StressLens: Anonymous Student Stress Intelligence and Workload Feedback System</h3>
   <p>A privacy-first ML platform for early detection of student overload and campus stress trends.</p>
   <p><b>Powered by FastAPI, Next.js, Celery, MLflow, PyTorch & PostgreSQL with pgvector.</b></p>
