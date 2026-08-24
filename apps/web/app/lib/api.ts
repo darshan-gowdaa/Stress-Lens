@@ -95,8 +95,9 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 
 export function submitCheckin(data: CheckinPayload): Promise<CheckinResponse> {
-  return apiFetch('/checkins/', { method: 'POST', body: JSON.stringify(data) });
+  return apiFetch('/checkins', { method: 'POST', body: JSON.stringify(data) });
 }
+
 
 export function getAINudge(
   stress_level: number,
