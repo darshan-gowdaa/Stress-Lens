@@ -228,8 +228,24 @@ async def populate_rich_records(db: AsyncSession) -> dict:
     now = datetime.datetime.now(datetime.timezone.utc)
     records_to_insert = []
 
-    # Generate records evenly distributed across 90 days
-    record_idx = 0
+    # Create a highly skewed distribution of records per department
+    dept_pool = []
+    counts = [8, 12, 15, 20, 25, 32, 40, 45, 50, 58, 65, 75]
+    random.shuffle(counts)
+    for cfg, count in zip(DEPTS_CONFIG, counts):
+        dept_pool.extend([cfg] * count)
+    
+    random.shuffle(dept_pool)
+
+    # Ensure each day gets at least 1 record, randomly distribute the rest
+    day_assignments = [[] for _ in range(90)]
+    for i in range(90):
+        if dept_pool:
+            day_assignments[i].append(dept_pool.pop())
+            
+    for item in dept_pool:
+        day_assignments[random.randint(0, 89)].append(item)
+
     for day_idx in range(90):
         date_day = now - datetime.timedelta(days=day_idx)
         weekday = date_day.weekday()
@@ -258,12 +274,7 @@ async def populate_rich_records(db: AsyncSession) -> dict:
             # Semester orientation dip
             time_modifier -= 1
 
-        # 3 to 4 check-ins each day guarantees full continuous coverage
-        daily_count = random.choice([3, 4, 4])
-        for _ in range(daily_count):
-            dept_cfg = DEPTS_CONFIG[record_idx % len(DEPTS_CONFIG)]
-            record_idx += 1
-
+        for dept_cfg in day_assignments[day_idx]:
             dept_name = dept_cfg["dept"]
             course = random.choice(dept_cfg["courses"])
             name = random.choice(INDIAN_NAMES)
