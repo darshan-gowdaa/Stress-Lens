@@ -14,7 +14,7 @@ import {
   ClusteringSkeleton,
   SemanticSearchSkeleton,
 } from '../components/LoadingSkeleton';
-import { stressColor } from '../components/StressGauge';
+import { stressColor, stressIconUrl } from '../components/StressGauge';
 import {
   getDashboardAggregate,
   getDashboardStats,
