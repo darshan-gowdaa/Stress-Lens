@@ -16,6 +16,8 @@ const inter = Inter({
   display: "swap",
 });
 
+import { ThemeProvider } from "./components/ThemeProvider";
+
 export const metadata: Metadata = {
   title: "StressLens",
   description: "Anonymous student stress monitoring platform",
@@ -26,8 +28,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       className={`${outfit.variable} ${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ThemeToggle } from './ThemeToggle';
 
 interface NavbarProps {
   currentPath?: 'checkin' | 'dashboard' | 'notebook';
@@ -18,38 +19,42 @@ export default function Navbar({ currentPath }: NavbarProps) {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1" aria-label="Main navigation">
-          <Link
-            href="/"
-            className={`px-4 py-1.5 rounded-[var(--radius-full)] text-sm font-medium transition-colors ${
-              currentPath === 'checkin'
-                ? 'bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)]'
-                : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]'
-            }`}
-          >
-            Check-in
-          </Link>
-          <Link
-            href="/dashboard"
-            className={`px-4 py-1.5 rounded-[var(--radius-full)] text-sm font-medium transition-colors ${
-              currentPath === 'dashboard'
-                ? 'bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)]'
-                : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]'
-            }`}
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/notebook"
-            className={`px-4 py-1.5 rounded-[var(--radius-full)] text-sm font-medium transition-colors ${
-              currentPath === 'notebook'
-                ? 'bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)]'
-                : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]'
-            }`}
-          >
-            Notebook
-          </Link>
-        </nav>
+        <div className="flex items-center gap-2">
+          <nav className="flex items-center gap-1" aria-label="Main navigation">
+            <Link
+              href="/"
+              className={`px-4 py-1.5 rounded-[var(--radius-full)] text-sm font-medium transition-colors ${
+                currentPath === 'checkin'
+                  ? 'bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)]'
+                  : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]'
+              }`}
+            >
+              Check-in
+            </Link>
+            <Link
+              href="/dashboard"
+              className={`px-4 py-1.5 rounded-[var(--radius-full)] text-sm font-medium transition-colors ${
+                currentPath === 'dashboard'
+                  ? 'bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)]'
+                  : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]'
+              }`}
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/notebook"
+              className={`px-4 py-1.5 rounded-[var(--radius-full)] text-sm font-medium transition-colors ${
+                currentPath === 'notebook'
+                  ? 'bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)]'
+                  : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]'
+              }`}
+            >
+              Notebook
+            </Link>
+          </nav>
+          <div className="w-px h-6 bg-[var(--color-outline)] opacity-30 mx-1 hidden sm:block"></div>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

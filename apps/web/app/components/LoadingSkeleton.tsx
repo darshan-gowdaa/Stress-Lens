@@ -88,7 +88,7 @@ export function TrendChartSkeleton() {
         <div className="h-7 w-40 bg-[var(--color-surface-variant)] rounded-[var(--radius-sm)]" />
       </div>
       <div className="h-3 w-48 bg-[var(--color-surface-variant)] rounded-full mb-6 opacity-60" />
-      <div className="h-24 bg-[var(--color-surface-variant)]/40 rounded-[var(--radius-md)]" />
+      <div className="h-64 bg-[var(--color-surface-variant)]/40 rounded-[var(--radius-md)]" />
     </div>
   );
 }
