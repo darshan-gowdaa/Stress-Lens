@@ -39,3 +39,5 @@ mlruns/
 .vscode/
 .idea/
 
+
+.vercel
